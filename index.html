@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Woordtrainer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Woordtrainer</h1>
+
+  <label>Thema:
+    <select id="themaSelect"></select>
+  </label>
+
+  <label>Subthema:
+    <select id="subthemaSelect"></select>
+  </label>
+
+  <button id="startBtn">Start oefening</button>
+
+  <div id="quiz" style="display:none;">
+    <p id="translation"></p>
+    <input type="text" id="answer" placeholder="Typ het woord en druk Enter">
+    <p id="feedback"></p>
+  </div>
+
+  <script src="woordenlijst.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
