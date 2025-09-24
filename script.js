@@ -1,5 +1,5 @@
 // === 1. DATA HARDCODED ===
-// Simuleer je Excel-data als een array van objecten
+// (woordenlijst.js moet vooraf ingeladen zijn)
 
 // === 2. ELEMENTEN ===
 const themaSelect = document.getElementById("themaSelect");
@@ -10,7 +10,14 @@ const translationP = document.getElementById("translation");
 const answerInput = document.getElementById("answer");
 const feedbackP = document.getElementById("feedback");
 
+// ✅ extra element voor resterende woorden
+const remainingP = document.createElement("p");
+remainingP.style.marginTop = "1rem";
+remainingP.style.fontWeight = "600";
+quizDiv.appendChild(remainingP);
+
 let currentWord = null;
+let toLearn = []; // woorden die nog minstens 1x juist moeten zijn
 
 // === 3. INIT dropdowns ===
 const themaSet = [...new Set(woordenlijst.map(w => w.thema))];
@@ -39,20 +46,39 @@ updateSubthema();
 themaSelect.addEventListener("change", updateSubthema);
 
 // === 4. QUIZ ===
-function pickRandomWord() {
-  const filtered = woordenlijst.filter(w =>
-    w.thema === themaSelect.value && w.subthema === subthemaSelect.value
-  );
-  return filtered[Math.floor(Math.random() * filtered.length)];
+function nextWord() {
+  feedbackP.textContent = "";
+  answerInput.value = "";
+
+  if (toLearn.length === 0) {
+    translationP.textContent = "🎉 Alle woorden correct beantwoord!";
+    remainingP.textContent = "Nog te beheersen: 0";
+    currentWord = null;
+    return;
+  }
+
+  const idx = Math.floor(Math.random() * toLearn.length);
+  currentWord = toLearn[idx];
+  translationP.textContent = `Vertaling: ${currentWord.vertaling}`;
+  remainingP.textContent = `Nog te beheersen: ${toLearn.length}`;
+  answerInput.focus();
 }
 
 startBtn.addEventListener("click", () => {
-  currentWord = pickRandomWord();
-  translationP.textContent = `Vertaling: ${currentWord.vertaling}`;
-  answerInput.value = "";
-  feedbackP.textContent = "";
+  // Filter selectie
+  const selectedThema = themaSelect.value;
+  const selectedSub = subthemaSelect.value;
+  toLearn = woordenlijst.filter(
+    w => w.thema === selectedThema && w.subthema === selectedSub
+  );
+
+  if (toLearn.length === 0) {
+    alert("Geen woorden gevonden voor deze selectie.");
+    return;
+  }
+
   quizDiv.style.display = "block";
-  answerInput.focus();
+  nextWord();
 });
 
 answerInput.addEventListener("keydown", e => {
@@ -61,17 +87,13 @@ answerInput.addEventListener("keydown", e => {
     if (guess === currentWord.woord.toLowerCase()) {
       feedbackP.textContent = "✅ Juist!";
       feedbackP.style.color = "green";
+      // ✅ verwijder pas als correct
+      toLearn = toLearn.filter(w => w !== currentWord);
     } else {
-      feedbackP.textContent = `❌ Fout. Het juiste woord is: ${currentWord.woord}`;
+      feedbackP.textContent = `❌ Fout. Juist was: ${currentWord.woord}`;
       feedbackP.style.color = "red";
+      // ❌ fout → blijft in toLearn
     }
-    // Nieuw woord na korte pauze
-    setTimeout(() => {
-      currentWord = pickRandomWord();
-      translationP.textContent = `Vertaling: ${currentWord.vertaling}`;
-      answerInput.value = "";
-      feedbackP.textContent = "";
-      answerInput.focus();
-    }, 1500);
+    setTimeout(nextWord, 1500);
   }
 });
